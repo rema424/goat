@@ -7,6 +7,7 @@
 ## memo
 
 ```bash
+# Cobra-cli は GOPATH 配下でしか使えないので
 cd $GOPATH/src/github.com/rema424
 
 git clone https://github.com/rema424/goat.git
@@ -21,13 +22,15 @@ cobra -h
 
 cobra init .
 
-dep init
+echo 'GO111MODULE=on' >> ~/.bash_profile
+
+exec $SHELL -l
+
+go mod init github.com/rema424/goat
+# dep init
 
 cabra add hello
 
+go get github.com/rema424/goat
 go install
-
-goat --help
-
-# go mod init github.com/rema424/goat
 ```
