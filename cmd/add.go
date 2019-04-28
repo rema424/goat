@@ -38,7 +38,7 @@ to quickly create a Cobra application.`,
 		fmt.Println("add called")
 
 		// テンプレートが配置されたパスを文字列で取得する（go get で配置された GOPATH 配下のパス）
-		tmplPath := lib.GetTemplate("hello.go.tmpl")
+		tmplPath := lib.GetTemplatePath("hello.go.tmpl")
 
 		// テンプレートを読み込む
 		t := template.Must(template.ParseFiles(tmplPath))
