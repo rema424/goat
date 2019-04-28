@@ -12,9 +12,9 @@
 - [GolangでwebサービスのAPIを叩くCLIツールを作ろう](https://qiita.com/minamijoyo/items/cfd22e9e6d3581c5d81f)
 - [Golangのコマンドライブラリcobraを使って少しうまく実装する](https://qiita.com/tkit/items/3cdeafcde2bd98612428)
 - [VSCodeでGoのModules設定](https://qiita.com/msmsny/items/a8d4573d03774815a198)
-- []()
-- []()
-- []()
+- [Create a Golang CLI application with Cobra and goxc](https://sbstjn.com/create-golang-cli-application-with-cobra-and-goxc.html)
+- [mattn/echo-scaffold](https://github.com/mattn/echo-scaffold/blob/master/command/model_command.go)
+- [go-openapi/inflect](https://github.com/go-openapi/inflect)
 - []()
 
 ## memo
