@@ -17,7 +17,7 @@
 - [go-openapi/inflect](https://github.com/go-openapi/inflect)
 - [GoでCLIツール作るのに便利そうなパッケージを集めてみました](https://qiita.com/isaoshimizu/items/71dd2ca2a08ddb607e31)
 - [manifoldco/promptui](https://github.com/manifoldco/promptui)
-- []()
+- [Go 1.11 の Modules (vgo) を CircleCI で使う](https://blog.tsub.me/post/go111-modules-in-circleci/)
 - []()
 - []()
 - []()

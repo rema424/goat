@@ -18,6 +18,7 @@ import (
 	"bufio"
 	"fmt"
 	"os"
+	"path/filepath"
 	"text/template"
 
 	"github.com/manifoldco/promptui"
@@ -40,38 +41,20 @@ to quickly create a Cobra application.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		fmt.Println("init called")
 		fmt.Println("Arts Count: ", len(args))
+		arg := args[0]
 
-		fmt.Println("Gitリポジトリのホスティング先を選択してください。")
-		prompt := promptui.Select{
-			Label: "Gitリポジトリのホスティング先を選択してください。",
-			Items: []string{"github.com", "gitlab.com", "bitbucket.org", "other"},
-		}
-
-		_, result, err := prompt.Run()
-		if err != nil {
-			fmt.Printf("Prompt failed %v\n", err)
-			return
-		}
-		if result == "other" {
-			fmt.Print("ホスティング先を入力してください > ")
-			scanner := bufio.NewScanner(os.Stdin)
-			for scanner.Scan() {
-				result = scanner.Text()
-				if result != "" {
-					break
-				} else {
-					fmt.Print("ホスティング先を入力してください > ")
-				}
-			}
-			if err := scanner.Err(); err != nil {
-				panic(err)
+		var host, user, app string
+		for {
+			host = getHost()
+			user = getUser()
+			app = getApp(arg)
+			ok := confirm(host, user, app)
+			if ok {
+				break
 			}
 		}
-
-		fmt.Printf("You choose %q\n", result)
 
 		// アプリケーション名が入力されたら、プロジェクトディレクトリを作成する。
-		arg := args[0]
 		if arg != "." {
 			os.Mkdir(arg, 0755)
 			os.Chdir(arg)
@@ -124,4 +107,106 @@ func makeGitignore() {
 
 func makeCircleCiConfig() {
 
+}
+
+func getHost() string {
+	prompt := promptui.Select{
+		Label: "リモートリポジトリのホスティング先を選択してください。",
+		Items: []string{"github.com", "gitlab.com", "bitbucket.org", "other"},
+	}
+
+	_, host, err := prompt.Run()
+	if err != nil {
+		panic(err)
+	}
+
+	if host == "other" {
+		fmt.Print("リモートリポジトリのホスティング先を入力してください > ")
+		scanner := bufio.NewScanner(os.Stdin)
+		for scanner.Scan() {
+			host = scanner.Text()
+			if host != "" {
+				break
+			} else {
+				fmt.Print("リモートリポジトリのホスティング先を入力してください > ")
+			}
+		}
+		if err := scanner.Err(); err != nil {
+			panic(err)
+		}
+	}
+
+	fmt.Println("")
+	return host
+}
+
+func getUser() string {
+	fmt.Println("リモートリポジトリのユーザ名または組織名を入力してください。")
+	fmt.Print("> ")
+	scanner := bufio.NewScanner(os.Stdin)
+	var user string
+	for scanner.Scan() {
+		user = scanner.Text()
+		if user != "" {
+			break
+		} else {
+			fmt.Println("ユーザ名または組織名を入力してください。")
+			fmt.Print("> ")
+		}
+	}
+	if err := scanner.Err(); err != nil {
+		panic(err)
+	}
+
+	fmt.Println("")
+	return user
+}
+
+func getApp(arg string) string {
+	var appName string
+	if arg == "." {
+		dir, err := os.Getwd()
+		if err != nil {
+			panic(err)
+		}
+		appName = filepath.Base(dir)
+	} else {
+		appName = arg
+	}
+	return appName
+}
+
+func confirm(host string, user string, app string) bool {
+
+	var res bool
+
+	fmt.Println("【入力確認】")
+	fmt.Println("ホスト先: ", host)
+	fmt.Println("ユーザ名: ", user)
+	fmt.Println("プロジェクト名: ", app)
+	fmt.Plintln("パス: ")
+	fmt.Print("入力内容はこちらで間違いないですか? [Y/n] ")
+
+	scanner := bufio.NewScanner(os.Stdin)
+	for scanner.Scan() {
+
+		input := scanner.Text()
+
+		if input == "Y" || input == "y" || input == "" {
+			res = true
+			break
+		} else if input == "N" || input == "n" {
+			res = false
+			break
+		} else {
+			fmt.Println("yかnで答えてください。")
+			fmt.Println("")
+		}
+	}
+
+	if err := scanner.Err(); err != nil {
+		panic(err)
+	}
+
+	return res
 }
