@@ -7,6 +7,7 @@ require (
 	github.com/hashicorp/hcl v1.0.0
 	github.com/inconshreveable/mousetrap v1.0.0
 	github.com/magiconair/properties v1.8.0
+	github.com/manifoldco/promptui v0.3.2
 	github.com/mitchellh/go-homedir v1.1.0
 	github.com/mitchellh/mapstructure v1.1.2
 	github.com/pelletier/go-toml v1.3.0

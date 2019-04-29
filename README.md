@@ -15,6 +15,14 @@
 - [Create a Golang CLI application with Cobra and goxc](https://sbstjn.com/create-golang-cli-application-with-cobra-and-goxc.html)
 - [mattn/echo-scaffold](https://github.com/mattn/echo-scaffold/blob/master/command/model_command.go)
 - [go-openapi/inflect](https://github.com/go-openapi/inflect)
+- [GoでCLIツール作るのに便利そうなパッケージを集めてみました](https://qiita.com/isaoshimizu/items/71dd2ca2a08ddb607e31)
+- [manifoldco/promptui](https://github.com/manifoldco/promptui)
+- []()
+- []()
+- []()
+- []()
+- []()
+- []()
 - []()
 
 ## memo

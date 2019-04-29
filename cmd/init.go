@@ -15,9 +15,15 @@
 package cmd
 
 import (
+	"bufio"
 	"fmt"
+	"os"
+	"text/template"
 
+	"github.com/manifoldco/promptui"
 	"github.com/spf13/cobra"
+
+	"github.com/rema424/goat/lib"
 )
 
 // initCmd represents the init command
@@ -30,8 +36,56 @@ and usage of using your command. For example:
 Cobra is a CLI library for Go that empowers applications.
 This application is a tool to generate the needed files
 to quickly create a Cobra application.`,
+	Args: cobra.RangeArgs(1, 1),
 	Run: func(cmd *cobra.Command, args []string) {
 		fmt.Println("init called")
+		fmt.Println("Arts Count: ", len(args))
+
+		fmt.Println("Gitリポジトリのホスティング先を選択してください。")
+		prompt := promptui.Select{
+			Label: "Gitリポジトリのホスティング先を選択してください。",
+			Items: []string{"github.com", "gitlab.com", "bitbucket.org", "other"},
+		}
+
+		_, result, err := prompt.Run()
+		if err != nil {
+			fmt.Printf("Prompt failed %v\n", err)
+			return
+		}
+		if result == "other" {
+			fmt.Print("ホスティング先を入力してください > ")
+			scanner := bufio.NewScanner(os.Stdin)
+			for scanner.Scan() {
+				result = scanner.Text()
+				if result != "" {
+					break
+				} else {
+					fmt.Print("ホスティング先を入力してください > ")
+				}
+			}
+			if err := scanner.Err(); err != nil {
+				panic(err)
+			}
+		}
+
+		fmt.Printf("You choose %q\n", result)
+
+		// アプリケーション名が入力されたら、プロジェクトディレクトリを作成する。
+		arg := args[0]
+		if arg != "." {
+			os.Mkdir(arg, 0755)
+			os.Chdir(arg)
+		}
+
+		// ディレクトリ作成
+		os.Mkdir(".circleci", 0755)
+		os.Mkdir(".vscode", 0755)
+		os.Mkdir("key", 0755)
+		os.Mkdir("lib", 0755)
+		os.Mkdir("model", 0755)
+		os.Mkdir("module", 0755)
+		os.Mkdir("service", 0755)
+		os.Mkdir("repository", 0755)
 	},
 }
 
@@ -47,4 +101,27 @@ func init() {
 	// Cobra supports local flags which will only run when this command
 	// is called directly, e.g.:
 	// initCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
+}
+
+func makeGitignore() {
+	tmplPath := lib.GetTemplatePath("gitignore.go.tmpl")
+
+	// テンプレートを読み込む
+	t := template.Must(template.ParseFiles(tmplPath))
+
+	// ファイルをコマンド実行時のカレントディレクトリに作成する
+	f, err := os.Create(".gitignore")
+	if err != nil {
+		panic(err)
+	}
+
+	// ファイルにテンプレートの内容を書き込む
+	err = t.Execute(f, nil)
+	if err != nil {
+		panic(err)
+	}
+}
+
+func makeCircleCiConfig() {
+
 }
