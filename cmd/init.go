@@ -184,7 +184,7 @@ func confirm(host string, user string, app string) bool {
 	fmt.Println("ホスト先: ", host)
 	fmt.Println("ユーザ名: ", user)
 	fmt.Println("プロジェクト名: ", app)
-	fmt.Plintln("パス: ")
+	fmt.Println("パス: ")
 	fmt.Print("入力内容はこちらで間違いないですか? [Y/n] ")
 
 	scanner := bufio.NewScanner(os.Stdin)
