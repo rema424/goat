@@ -61,14 +61,7 @@ to quickly create a Cobra application.`,
 		}
 
 		// ディレクトリ作成
-		os.Mkdir(".circleci", 0755)
-		os.Mkdir(".vscode", 0755)
-		os.Mkdir("key", 0755)
-		os.Mkdir("lib", 0755)
-		os.Mkdir("model", 0755)
-		os.Mkdir("module", 0755)
-		os.Mkdir("service", 0755)
-		os.Mkdir("repository", 0755)
+		makeDirs()
 	},
 }
 
@@ -84,6 +77,32 @@ func init() {
 	// Cobra supports local flags which will only run when this command
 	// is called directly, e.g.:
 	// initCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
+}
+
+func makeDirs() {
+	os.Mkdir(".circleci", 0755)
+	os.Mkdir(".vscode", 0755)
+	os.Mkdir("key", 0755)
+	os.Mkdir("lib", 0755)
+	os.Mkdir("model", 0755)
+	os.Mkdir("service", 0755)
+	os.Mkdir("repository", 0755)
+	os.Mkdir("module", 0755)
+	os.Mkdir("module/default", 0755)
+	os.Mkdir("module/default/controller", 0755)
+	os.Mkdir("module/default/main", 0755)
+	os.Mkdir("module/default/main/public", 0755)
+	os.Mkdir("module/default/main/static", 0755)
+	os.Mkdir("module/default/main/static/css", 0755)
+	os.Mkdir("module/default/main/static/css/src/user", 0755)
+	os.Mkdir("module/default/main/static/css/src/vendor", 0755)
+	os.Mkdir("module/default/main/static/js", 0755)
+	os.Mkdir("module/default/main/static/js/src", 0755)
+	os.Mkdir("module/default/main/static/js/src/user", 0755)
+	os.Mkdir("module/default/main/static/js/src/vendor", 0755)
+	os.Mkdir("module/default/main/template", 0755)
+	os.Mkdir("module/default/main/template/user", 0755)
+	os.Mkdir("module/default/main/viewmodel", 0755)
 }
 
 func makeGitignore() {
