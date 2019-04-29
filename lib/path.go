@@ -1,15 +1,21 @@
 package lib
 
 import (
+	"fmt"
 	"os"
+	"path/filepath"
 )
 
 // GetImportPath は go get の結果ソースコードが配置されたディレクトリのパスを返却します。
 func GetImportPath() string {
-	return os.ExpandEnv("${GOPATH}/src/github.com/rema424/goat")
+	path := filepath.Join(os.Getenv("GOPATH"), "src", "github.com", "rema424", "goat")
+	fmt.Println("GetImportPath(): ", path)
+	return path
 }
 
 // GetTemplatePath は引数で与えられてたテンプレートファイルの存在するパスを返却します。
 func GetTemplatePath(tmplName string) string {
-	return GetImportPath() + "/template/" + tmplName
+	path := filepath.Join(GetImportPath(), "template", tmplName)
+	fmt.Println("GetTemplatePath(): ", path)
+	return path
 }

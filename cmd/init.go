@@ -43,16 +43,16 @@ to quickly create a Cobra application.`,
 		fmt.Println("Arts Count: ", len(args))
 		arg := args[0]
 
-		var host, user, app string
-		for {
-			host = getHost()
-			user = getUser()
-			app = getApp(arg)
-			ok := confirm(host, user, app)
-			if ok {
-				break
-			}
-		}
+		// var host, user, app string
+		// for {
+		// 	host = getHost()
+		// 	user = getUser()
+		// 	app = getApp(arg)
+		// 	ok := confirm(host, user, app)
+		// 	if ok {
+		// 		break
+		// 	}
+		// }
 
 		// アプリケーション名が入力されたら、プロジェクトディレクトリを作成する。
 		if arg != "." {
