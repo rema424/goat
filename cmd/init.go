@@ -28,6 +28,21 @@ import (
 	"github.com/rema424/goat/lib"
 )
 
+type (
+	// BaseInfo ...
+	BaseInfo struct {
+		Host    string
+		User    string
+		Project string
+	}
+)
+
+var (
+	goatBasePash     = lib.GetImportPath()
+	templateBasePath = lib.GetTemplateDirPath()
+	baseInfo         = &BaseInfo{}
+)
+
 // initCmd represents the init command
 var initCmd = &cobra.Command{
 	Use:   "init",
@@ -40,20 +55,10 @@ This application is a tool to generate the needed files
 to quickly create a Cobra application.`,
 	Args: cobra.RangeArgs(1, 1),
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("init called")
-		fmt.Println("Arts Count: ", len(args))
 		arg := args[0]
 
-		// var host, user, app string
-		// for {
-		// 	host = getHost()
-		// 	user = getUser()
-		// 	app = getApp(arg)
-		// 	ok := confirm(host, user, app)
-		// 	if ok {
-		// 		break
-		// 	}
-		// }
+		// 基本情報を取得
+		getBaseInfo(arg)
 
 		// アプリケーション名が入力されたら、プロジェクトディレクトリを作成する。
 		if arg != "." {
@@ -65,7 +70,7 @@ to quickly create a Cobra application.`,
 		makeDirs()
 
 		// ファイル作成
-		makeFiles("github.com", "rema424", "example")
+		makeFiles(templateBasePath, 0)
 	},
 }
 
@@ -110,102 +115,75 @@ func makeDirs() {
 	os.Mkdir("module/default/main/viewmodel", 0755)
 }
 
-func makeFiles(host string, user string, project string) {
-	m := map[string]string{
-		"host":    host,
-		"user":    user,
-		"project": project,
-	}
-	fmt.Println(m)
-	listFiles(lib.GetTemplateDirPath(), 0)
-}
-
-func listFiles(absDirPath string, indent int) {
-	dir, err := os.Open(absDirPath)
+func makeFiles(dirPath string, indent int) {
+	// ディレクトリを開く
+	dir, err := os.Open(dirPath)
 	if err != nil {
 		panic(err)
 	}
+
+	// ディレクトリ内のファイル情報を一覧で取得する
 	fileInfos, err := dir.Readdir(-1)
 	if err != nil {
 		panic(err)
 	}
-	tmplBasePath := lib.GetTemplateDirPath()
-	baseInfo := &BaseInfo{
-		Host:    "github.com",
-		User:    "rema424",
-		Project: "goat-test",
-	}
+
+	// ファイル情報の一覧でループ処理
 	for _, fileInfo := range fileInfos {
 		fileName := fileInfo.Name()
+		fileNameTrim := strings.Replace(fileName, ".tmpl", "", 1)
 		indentStr := strings.Repeat("  ", indent)
-		nextAbsPath := filepath.Join(absDirPath, fileName)
+		nextPath := filepath.Join(dirPath, fileName)
+
 		if fileInfo.IsDir() {
-			fmt.Printf("%s[Dir] %s\n", indentStr, fileName)
-			listFiles(nextAbsPath, indent+1)
+			fmt.Printf("%s[Dir] %s\n", indentStr, fileNameTrim)
+			// ディレクトリの場合は再帰的に処理
+			makeFiles(nextPath, indent+1)
 		} else {
-			fmt.Printf("%s[File] %s\n", indentStr, fileInfo.Name())
-			tmplRelPath := strings.Replace(nextAbsPath, tmplBasePath, "", 1)
-			makeDefaultFile(baseInfo, tmplRelPath)
+			fmt.Printf("%s[File] %s\n", indentStr, fileNameTrim)
+			rel, err := filepath.Rel(templateBasePath, nextPath)
+			if err != nil {
+				panic(err)
+			}
+			makeFile(rel, baseInfo)
 		}
 	}
 }
 
-type (
-	// BaseInfo ...
-	BaseInfo struct {
-		Host    string
-		User    string
-		Project string
-	}
-)
+func makeFile(relPath string, baseInfo *BaseInfo) {
+	// 作成ファイル名
+	n := strings.Replace(relPath, ".tmpl", "", 1)
 
-func makeDefaultFile(baseInfo *BaseInfo, relPath string) {
-	// fmt.Println(relPath)
-	moveTo := "." + strings.Replace(relPath, ".tmpl", "", 1)
-	moveFrom := filepath.Base(moveTo)
-	f, err := os.Create(moveFrom)
+	// ファイル作成
+	f, err := os.Create(n)
 	if err != nil {
 		panic(err)
 	}
 
+	// テンプレートファイルの内容を作成ファイルに書き込み
 	t := template.Must(template.ParseFiles(lib.GetTemplatePath(relPath)))
-	err = t.Execute(f, baseInfo)
-	if err != nil {
-		panic(err)
-	}
-
-	err = os.Rename(moveFrom, moveTo)
-	if err != nil {
+	if err := t.Execute(f, baseInfo); err != nil {
 		panic(err)
 	}
 }
 
-func makeGitignore() {
-	tmplPath := lib.GetTemplatePath("gitignore.go.tmpl")
+func getBaseInfo(project string) {
+	host := getHost()
+	user := getUser()
+	pjt := getProject(project)
 
-	// テンプレートを読み込む
-	t := template.Must(template.ParseFiles(tmplPath))
-
-	// ファイルをコマンド実行時のカレントディレクトリに作成する
-	f, err := os.Create(".gitignore")
-	if err != nil {
-		panic(err)
+	if confirm(host, user, pjt) {
+		baseInfo.Host = host
+		baseInfo.User = user
+		baseInfo.Project = pjt
+	} else {
+		getBaseInfo(project)
 	}
-
-	// ファイルにテンプレートの内容を書き込む
-	err = t.Execute(f, nil)
-	if err != nil {
-		panic(err)
-	}
-}
-
-func makeCircleCiConfig() {
-
 }
 
 func getHost() string {
 	prompt := promptui.Select{
-		Label: "リモートリポジトリのホスティング先を選択してください。",
+		Label: "Git Host",
 		Items: []string{"github.com", "gitlab.com", "bitbucket.org", "other"},
 	}
 
@@ -215,75 +193,73 @@ func getHost() string {
 	}
 
 	if host == "other" {
-		fmt.Print("リモートリポジトリのホスティング先を入力してください > ")
+		s := "Git Host > "
+		fmt.Print(s)
+
 		scanner := bufio.NewScanner(os.Stdin)
-		for scanner.Scan() {
-			host = scanner.Text()
-			if host != "" {
-				break
-			} else {
-				fmt.Print("リモートリポジトリのホスティング先を入力してください > ")
-			}
-		}
 		if err := scanner.Err(); err != nil {
 			panic(err)
 		}
+		for scanner.Scan() {
+			host = strings.TrimSpace(scanner.Text())
+			if host != "" {
+				break
+			} else {
+				fmt.Print(s)
+			}
+		}
 	}
-
-	fmt.Println("")
 	return host
 }
 
 func getUser() string {
-	fmt.Println("リモートリポジトリのユーザ名または組織名を入力してください。")
-	fmt.Print("> ")
-	scanner := bufio.NewScanner(os.Stdin)
+	s := "User Name > "
+	fmt.Print(s)
+
 	var user string
-	for scanner.Scan() {
-		user = scanner.Text()
-		if user != "" {
-			break
-		} else {
-			fmt.Println("ユーザ名または組織名を入力してください。")
-			fmt.Print("> ")
-		}
-	}
+	scanner := bufio.NewScanner(os.Stdin)
 	if err := scanner.Err(); err != nil {
 		panic(err)
 	}
-
-	fmt.Println("")
+	for scanner.Scan() {
+		user = strings.TrimSpace(scanner.Text())
+		if user != "" {
+			break
+		} else {
+			fmt.Print(s)
+		}
+	}
 	return user
 }
 
-func getApp(arg string) string {
-	var appName string
-	if arg == "." {
+func getProject(project string) string {
+	var pjt string
+	if project == "." {
 		dir, err := os.Getwd()
 		if err != nil {
 			panic(err)
 		}
-		appName = filepath.Base(dir)
+		pjt = filepath.Base(dir)
 	} else {
-		appName = arg
+		pjt = project
 	}
-	return appName
+	return pjt
 }
 
 func confirm(host string, user string, app string) bool {
+	fmt.Println("【Confirm】")
+	fmt.Println("host: ", host)
+	fmt.Println("user: ", user)
+	fmt.Println("project: ", app)
+	fmt.Print("OK? [Y/n] ")
 
 	var res bool
 
-	fmt.Println("【入力確認】")
-	fmt.Println("ホスト先: ", host)
-	fmt.Println("ユーザ名: ", user)
-	fmt.Println("プロジェクト名: ", app)
-	fmt.Println("パス: ")
-	fmt.Print("入力内容はこちらで間違いないですか? [Y/n] ")
-
 	scanner := bufio.NewScanner(os.Stdin)
+	if err := scanner.Err(); err != nil {
+		panic(err)
+	}
 	for scanner.Scan() {
-
 		input := scanner.Text()
 
 		if input == "Y" || input == "y" || input == "" {
@@ -293,13 +269,8 @@ func confirm(host string, user string, app string) bool {
 			res = false
 			break
 		} else {
-			fmt.Println("yかnで答えてください。")
 			fmt.Println("")
 		}
-	}
-
-	if err := scanner.Err(); err != nil {
-		panic(err)
 	}
 
 	return res
