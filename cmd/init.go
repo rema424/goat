@@ -19,6 +19,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strings"
 	"text/template"
 
 	"github.com/manifoldco/promptui"
@@ -62,6 +63,9 @@ to quickly create a Cobra application.`,
 
 		// ディレクトリ作成
 		makeDirs()
+
+		// ファイル作成
+		makeFiles("github.com", "rema424", "example")
 	},
 }
 
@@ -94,6 +98,7 @@ func makeDirs() {
 	os.Mkdir("module/default/main/public", 0755)
 	os.Mkdir("module/default/main/static", 0755)
 	os.Mkdir("module/default/main/static/css", 0755)
+	os.Mkdir("module/default/main/static/css/src", 0755)
 	os.Mkdir("module/default/main/static/css/src/user", 0755)
 	os.Mkdir("module/default/main/static/css/src/vendor", 0755)
 	os.Mkdir("module/default/main/static/js", 0755)
@@ -103,6 +108,76 @@ func makeDirs() {
 	os.Mkdir("module/default/main/template", 0755)
 	os.Mkdir("module/default/main/template/user", 0755)
 	os.Mkdir("module/default/main/viewmodel", 0755)
+}
+
+func makeFiles(host string, user string, project string) {
+	m := map[string]string{
+		"host":    host,
+		"user":    user,
+		"project": project,
+	}
+	fmt.Println(m)
+	listFiles(lib.GetTemplateDirPath(), 0)
+}
+
+func listFiles(absDirPath string, indent int) {
+	dir, err := os.Open(absDirPath)
+	if err != nil {
+		panic(err)
+	}
+	fileInfos, err := dir.Readdir(-1)
+	if err != nil {
+		panic(err)
+	}
+	tmplBasePath := lib.GetTemplateDirPath()
+	baseInfo := &BaseInfo{
+		Host:    "github.com",
+		User:    "rema424",
+		Project: "goat-test",
+	}
+	for _, fileInfo := range fileInfos {
+		fileName := fileInfo.Name()
+		indentStr := strings.Repeat("  ", indent)
+		nextAbsPath := filepath.Join(absDirPath, fileName)
+		if fileInfo.IsDir() {
+			fmt.Printf("%s[Dir] %s\n", indentStr, fileName)
+			listFiles(nextAbsPath, indent+1)
+		} else {
+			fmt.Printf("%s[File] %s\n", indentStr, fileInfo.Name())
+			tmplRelPath := strings.Replace(nextAbsPath, tmplBasePath, "", 1)
+			makeDefaultFile(baseInfo, tmplRelPath)
+		}
+	}
+}
+
+type (
+	// BaseInfo ...
+	BaseInfo struct {
+		Host    string
+		User    string
+		Project string
+	}
+)
+
+func makeDefaultFile(baseInfo *BaseInfo, relPath string) {
+	// fmt.Println(relPath)
+	moveTo := "." + strings.Replace(relPath, ".tmpl", "", 1)
+	moveFrom := filepath.Base(moveTo)
+	f, err := os.Create(moveFrom)
+	if err != nil {
+		panic(err)
+	}
+
+	t := template.Must(template.ParseFiles(lib.GetTemplatePath(relPath)))
+	err = t.Execute(f, baseInfo)
+	if err != nil {
+		panic(err)
+	}
+
+	err = os.Rename(moveFrom, moveTo)
+	if err != nil {
+		panic(err)
+	}
 }
 
 func makeGitignore() {
