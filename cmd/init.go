@@ -18,9 +18,11 @@ import (
 	"bufio"
 	"fmt"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"strings"
 	"text/template"
+	"unsafe"
 
 	"github.com/manifoldco/promptui"
 	"github.com/spf13/cobra"
@@ -31,9 +33,10 @@ import (
 type (
 	// BaseInfo ...
 	BaseInfo struct {
-		Host    string
-		User    string
-		Project string
+		Host      string
+		User      string
+		Project   string
+		GoVersion string
 	}
 )
 
@@ -176,9 +179,24 @@ func getBaseInfo(project string) {
 		baseInfo.Host = host
 		baseInfo.User = user
 		baseInfo.Project = pjt
+		baseInfo.GoVersion = getGoVersion()
 	} else {
 		getBaseInfo(project)
 	}
+}
+
+// go version go1.12.1 darwin/amd64 -> 1.12
+func getGoVersion() string {
+	out, err := exec.Command("go", "version").Output()
+	if err != nil {
+		panic(err)
+	}
+
+	// バイト列から文字列に変換する。これが一番速いらしい。
+	outStr := *(*string)(unsafe.Pointer(&out)) // go version go1.12.1 darwin/amd64
+	// 正規表現はリソース効率が悪いのでゴリゴリ整形する
+	version := strings.Replace(strings.Split(outStr, " ")[2], "go", "", 1)
+	return strings.Join(strings.Split(version, ".")[:2], ".")
 }
 
 func getHost() string {
